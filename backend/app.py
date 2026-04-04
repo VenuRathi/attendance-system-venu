@@ -10,10 +10,12 @@ sys.path.append(BASE_DIR)
 
 from backend.auth import require_api_key
 from backend.database import init_db, insert_attendance, get_all_attendance, get_connection
-from analytics.analytics import (
-    generate_attendance_per_student,
-    generate_daily_attendance
-)
+
+#from analytics.analytics import (
+ #   generate_attendance_per_student,
+  #  generate_daily_attendance
+#)
+
 
 app = Flask(__name__)
 CORS(app)   # 🔥 ADD THIS
@@ -97,16 +99,16 @@ def fetch_attendance():
     return jsonify(result)
 
 
-@app.route("/analytics/generate", methods=["GET"])
-def generate_analytics():
-    chart1 = generate_attendance_per_student()
-    chart2 = generate_daily_attendance()
-
-    return jsonify({
-        "status": "generated",
-        "attendance_per_student": bool(chart1),
-        "daily_attendance": bool(chart2)
-    })
+#@app.route("/analytics/generate", methods=["GET"])
+#def generate_analytics():
+  #  chart1 = generate_attendance_per_student()
+ #   chart2 = generate_daily_attendance()
+#
+ #   return jsonify({
+  #      "status": "generated",
+   #     "attendance_per_student": bool(chart1),
+    #    "daily_attendance": bool(chart2)
+    #})
 
 if __name__ == "__main__":
     init_db()  # 🔥 MOVE HERE
