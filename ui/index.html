@@ -1,40 +1,555 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Attendance Dashboard</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RFID Attendance System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #121212;
+      --card-bg: rgba(25, 25, 35, 0.7);
+      --accent: #6c47ff;
+      --border: #303040;
+      --text: #e0e0e0;
+      --text-muted: #a0a0b0;
+      --success: #4ade80;
+      --warning: #f9c74f;
+      --danger: #fb7185;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0f0f12, #121218);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 240px;
+      background: var(--card-bg);
+      border-right: 1px solid var(--border);
+      padding: 1.5rem 1rem;
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: blur(12px);
+      height: 100%;
+      position: sticky;
+      top: 0;
+    }
+
+    .logo {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      color: white;
+    }
+
+    .nav {
+      list-style: none;
+    }
+
+    .nav-item {
+      margin-bottom: 0.75rem;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      transition: 0.2s ease;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+
+    .nav-item.active,
+    .nav-item:hover {
+      background: rgba(108, 71, 255, 0.2);
+      border: 1px solid rgba(108, 71, 255, 0.3);
+      opacity: 1;
+    }
+
+    .main {
+      flex: 1;
+      padding: 1.5rem;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .title {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+    }
+
+    .card label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    .card .value {
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    .positive {
+      color: var(--success);
+    }
+
+    .warning {
+      color: var(--warning);
+    }
+
+    .danger {
+      color: var(--danger);
+    }
+
+    .section {
+      margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .section-title::after {
+      content: "";
+      flex: 1;
+      margin-left: 0.75rem;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .feed {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .feed-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 0.8rem 1rem;
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .feed-item-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .feed-item-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .status-badge {
+      font-size: 0.75rem;
+      padding: 0.15rem 0.4rem;
+      border-radius: 50px;
+      display: inline-block;
+      margin-top: 0.3rem;
+    }
+
+    .status-present {
+      background: rgba(74, 222, 128, 0.2);
+      color: var(--success);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+    }
+
+    .status-duplicate {
+      background: rgba(249, 199, 79, 0.2);
+      color: var(--warning);
+      border: 1px solid rgba(249, 199, 79, 0.3);
+    }
+
+    .status-invalid {
+      background: rgba(251, 113, 133, 0.2);
+      color: var(--danger);
+      border: 1px solid rgba(251, 113, 133, 0.3);
+    }
+
+    .analytics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .chart-wrapper {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      backdrop-filter: blur(8px);
+    }
+
+    .chart-canvas {
+      margin-top: 1rem;
+      height: 180px;
+      width: 100%;
+    }
+
+    .table-wrapper {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      backdrop-filter: blur(8px);
+    }
+
+    .table-controls {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .search,
+    .filter-select {
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: rgba(30, 30, 40, 0.8);
+      color: var(--text);
+      font-size: 0.85rem;
+    }
+
+    .search::placeholder {
+      color: var(--text-muted);
+    }
+
+    .activity-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .activity-table th {
+      text-align: left;
+      padding: 0.75rem 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .activity-table td {
+      padding: 0.75rem 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .activity-table tr:nth-child(even) {
+      background: rgba(30, 30, 40, 0.4);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .loader {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .toast {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.8rem 1rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(14px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      transform: translateX(200%);
+      opacity: 0;
+      transition: 0.3s ease;
+    }
+
+    .toast.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .toast-icon {
+      font-size: 1.1rem;
+    }
+
+    .toast-success {
+      color: var(--success);
+    }
+
+    @media (max-width: 900px) {
+      .analytics {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .app {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        height: auto;
+        padding: 1rem;
+        position: relative;
+      }
+      .cards {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
-
 <body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">RFID Attendance</div>
+      <ul class="nav">
+        <li class="nav-item active">Dashboard</li>
+        <li class="nav-item">Analytics</li>
+        <li class="nav-item">Logs</li>
+      </ul>
+    </aside>
 
-<h1>📡 Live Attendance Dashboard</h1>
+    <main class="main">
+      <header class="header">
+        <h1 class="title">RFID Attendance System</h1>
+      </header>
 
-<div class="top">
-    <div class="card">Total: <span id="total">0</span></div>
-    <div class="card">Unique: <span id="unique">0</span></div>
-    <div class="card" id="status">🟢 Live</div>
-</div>
+      <section class="cards">
+        <div class="card">
+          <label>Today Present</label>
+          <div id="total-present" class="value positive">0</div>
+        </div>
+        <div class="card">
+          <label>Total Scans</label>
+          <div id="total-scans" class="value">0</div>
+        </div>
+        <div class="card">
+          <label>Invalid Attempts</label>
+          <div id="total-invalid" class="value danger">0</div>
+        </div>
+        <div class="card">
+          <label>Duplicate Scans</label>
+          <div id="total-duplicate" class="value warning">0</div>
+        </div>
+      </section>
 
-<canvas id="chart" height="100"></canvas>
+      <section class="section">
+        <h2 class="section-title">Latest Scans</h2>
+        <div id="realtime-feed" class="feed">
+          <!-- Latest scans auto injected -->
+        </div>
+      </section>
 
-<h2>Recent Scans</h2>
+      <section class="section">
+        <h2 class="section-title">Analytics</h2>
+        <div class="analytics">
+          <div class="chart-wrapper">
+            <h3>Attendance per Student</h3>
+            <canvas id="chart-attendance-per-student" class="chart-canvas"></canvas>
+          </div>
+          <div class="chart-wrapper">
+            <h3>Attendance over Time</h3>
+            <canvas id="chart-attendance-over-time" class="chart-canvas"></canvas>
+          </div>
+        </div>
+      </section>
 
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>UID</th>
-            <th>Time</th>
-        </tr>
-    </thead>
-    <tbody id="table-body"></tbody>
-</table>
+      <section class="section">
+        <h2 class="section-title">Activity Logs</h2>
+        <div class="table-controls">
+          <input
+            type="text"
+            id="search-input"
+            class="search"
+            placeholder="Search by name or UID..."
+          />
+          <select id="filter-status" class="filter-select">
+            <option value="">All Status</option>
+            <option value="present">Present</option>
+            <option value="duplicate">Duplicate</option>
+            <option value="invalid">Invalid</option>
+          </select>
+        </div>
+        <div class="table-wrapper">
+          <table class="activity-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>UID</th>
+                <th>Time</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="activity-body">
+              <!-- rows injected here -->
+            </tbody>
+          </table>
+          <div id="activity-empty" class="empty-state" style="display: none;">
+            No attendance records yet.
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
 
-<div id="alert"></div>
+  <!-- Toast notification -->
+  <div id="toast" class="toast">
+    <span class="toast-icon toast-success">✅</span>
+    <span id="toast-text">Attendance marked</span>
+  </div>
 
-<!-- Chart.js CDN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="script.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // =============== CONFIG ===============
+    const API_ENDPOINT   = "https://attendance-system-ul60.onrender.com/attendance";
+    const REFRESH_MS     = 2000;            // every 2 seconds
 
-</body>
-</html>
+    // DOM elements
+    const realtimeFeed     = document.getElementById("realtime-feed");
+    const totalPresentEl   = document.getElementById("total-present");
+    const totalScansEl     = document.getElementById("total-scans");
+    const totalInvalidEl   = document.getElementById("total-invalid");
+    const totalDuplicateEl = document.getElementById("total-duplicate");
+    const activityBody     = document.getElementById("activity-body");
+    const activityEmpty    = document.getElementById("activity-empty");
+    const searchInput      = document.getElementById("search-input");
+    const filterStatus     = document.getElementById("filter-status");
+    const toastEl          = document.getElementById("toast");
+    const toastTextEl      = document.getElementById("toast-text");
+
+    // charts
+    const ctxPerStudent = document.getElementById("chart-attendance-per-student").getContext("2d");
+    const ctxOverTime   = document.getElementById("chart-attendance-over-time").getContext("2d");
+
+    let chartPerStudent  = null;
+    let chartOverTime    = null;
+
+    let allData          = [];   // all scans from backend
+    let lastShownId      = null; // to show only new scans in toast
+
+    // =============== LIVE DATA FETCH ===============
+    function fetchAttendance() {
+      fetch(API_ENDPOINT)
+        .then(res => res.json())
+        .then(data => {
+          if (!Array.isArray(data)) {
+            throw new Error("Expected array of records.");
+          }
+          allData = data;
+
+          // Update dashboard cards
+          const totalScans = allData.length;
+          const invalid    = allData.filter(d => d.status === "invalid").length;
+          const duplicate  = allData.filter(d => d.status === "duplicate").length;
+          const present    = totalScans - invalid - duplicate;
+
+          totalScansEl.textContent     = totalScans;
+          totalPresentEl.textContent   = present;
+          totalInvalidEl.textContent   = invalid;
+          totalDuplicateEl.textContent = duplicate;
+
+          // Update charts
+          updateCharts();
+
+          // Update tables / feeds
+          renderLatestFeed();
+          renderActivityTable();
+
+          // Show toast for new "present" scan (if any)
+          const newScan = allData.find(s => s.id === lastShownId);
+          if (newScan && newScan.status === "present") {
+            showToast(newScan.name || "Unknown Student");
+          }
+
+        })
+        .catch(err => {
+          console.error("Error fetching attendance:", err);
+          totalScans
