@@ -78,7 +78,7 @@ def add_attendance():
     insert_attendance(uid, name)
 
     return jsonify({
-        "status": "success",
+        "status": "Present",
         "name": name
     }), 200
 

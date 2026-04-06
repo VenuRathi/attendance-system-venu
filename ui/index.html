@@ -488,68 +488,53 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // =============== CONFIG ===============
-    const API_ENDPOINT   = "https://attendance-system-ul60.onrender.com/attendance";
-    const REFRESH_MS     = 2000;            // every 2 seconds
+    const API = "https://attendance-system-ul60.onrender.com/attendance";
 
-    // DOM elements
-    const realtimeFeed     = document.getElementById("realtime-feed");
-    const totalPresentEl   = document.getElementById("total-present");
-    const totalScansEl     = document.getElementById("total-scans");
-    const totalInvalidEl   = document.getElementById("total-invalid");
-    const totalDuplicateEl = document.getElementById("total-duplicate");
-    const activityBody     = document.getElementById("activity-body");
-    const activityEmpty    = document.getElementById("activity-empty");
-    const searchInput      = document.getElementById("search-input");
-    const filterStatus     = document.getElementById("filter-status");
-    const toastEl          = document.getElementById("toast");
-    const toastTextEl      = document.getElementById("toast-text");
-
-    // charts
-    const ctxPerStudent = document.getElementById("chart-attendance-per-student").getContext("2d");
-    const ctxOverTime   = document.getElementById("chart-attendance-over-time").getContext("2d");
-
-    let chartPerStudent  = null;
-    let chartOverTime    = null;
-
-    let allData          = [];   // all scans from backend
-    let lastShownId      = null; // to show only new scans in toast
-
-    // =============== LIVE DATA FETCH ===============
-    function fetchAttendance() {
-      fetch(API_ENDPOINT)
+    function fetchData() {
+      fetch(API)
         .then(res => res.json())
         .then(data => {
-          if (!Array.isArray(data)) {
-            throw new Error("Expected array of records.");
-          }
-          allData = data;
 
-          // Update dashboard cards
-          const totalScans = allData.length;
-          const invalid    = allData.filter(d => d.status === "invalid").length;
-          const duplicate  = allData.filter(d => d.status === "duplicate").length;
-          const present    = totalScans - invalid - duplicate;
+      // cards
+          document.getElementById("total-scans").innerText = data.length;
+          document.getElementById("total-present").innerText = data.length;
 
-          totalScansEl.textContent     = totalScans;
-          totalPresentEl.textContent   = present;
-          totalInvalidEl.textContent   = invalid;
-          totalDuplicateEl.textContent = duplicate;
+      // feed
+          const feed = document.getElementById("realtime-feed");
+          feed.innerHTML = "";
 
-          // Update charts
-          updateCharts();
+          data.slice(-5).reverse().forEach(d => {
+            feed.innerHTML += `
+              <div class="feed-item">
+                <div class="feed-item-name">${d.name}</div>
+                <div> class="feed-item-meta">${d.uid}</div>
+                <div class="feed-item-meta">
+                  ${new Date(d.timestamp).toLocaleString()}
+                </div>
+              </div>
+            `;
+          });
 
-          // Update tables / feeds
-          renderLatestFeed();
-          renderActivityTable();
+      // table
+          const table = document.getElementById("activity-body");
+          table.innerHTML = "";
 
-          // Show toast for new "present" scan (if any)
-          const newScan = allData.find(s => s.id === lastShownId);
-          if (newScan && newScan.status === "present") {
-            showToast(newScan.name || "Unknown Student");
-          }
+          data.forEach(d => {
+            table.innerHTML += `
+              <tr>
+                <td>${d.name}</td>
+                <td>${d.uid}</td>
+                <td>${new Date(d.timestamp).toLocaleString()}</td>
+                <td>Present</td>
+              </tr>
+            `;
+          });
 
         })
-        .catch(err => {
-          console.error("Error fetching attendance:", err);
-          totalScans
+        .catch(err => console.log(err));
+    }
+
+// refresh
+setInterval(fetchData, 2000);
+fetchData();
+</script>
