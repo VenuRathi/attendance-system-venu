@@ -31,15 +31,21 @@
 <canvas id="chart" width="400" height="200"></canvas>
 
 <script>
-const API = "https://attendance-system-ul60.onrender.com/attendance";
+const BASE = "https://attendance-system-ul60.onrender.com";
+const API = BASE + "/attendance";
 
-let chart;
+let chart = null;
 
 // 🔥 FETCH DATA
 function fetchData() {
   fetch(API)
     .then(res => res.json())
     .then(data => {
+
+      if (!Array.isArray(data)) {
+        console.error("Invalid response:", data);
+        return;
+      }
 
       // COUNTS
       document.getElementById("total").innerText = data.length;
@@ -58,19 +64,27 @@ function fetchData() {
 
       data.slice(-5).reverse().forEach(d => {
         const li = document.createElement("li");
-        li.innerText = `${d.name} (${d.uid}) - ${d.status}`;
+
+        const name = d.name || "Unknown";
+        const uid = d.uid || "N/A";
+        const status = d.status || "unknown";
+
+        li.innerText = `${name} (${uid}) - ${status}`;
         feed.appendChild(li);
       });
 
       // 📊 CHART
       updateChart(present, duplicate, invalid);
+    })
+    .catch(err => {
+      console.error("Fetch error:", err);
     });
 }
 
 // 📊 CHART FUNCTION
 function updateChart(present, duplicate, invalid) {
 
-  const data = {
+  const chartData = {
     labels: ["Present", "Duplicate", "Invalid"],
     datasets: [{
       label: "Attendance",
@@ -79,31 +93,44 @@ function updateChart(present, duplicate, invalid) {
   };
 
   if (chart) {
-    chart.data = data;
+    chart.data = chartData;
     chart.update();
   } else {
     const ctx = document.getElementById("chart").getContext("2d");
     chart = new Chart(ctx, {
       type: "bar",
-      data: data
+      data: chartData,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
     });
   }
+}
+
+// 🔥 RESET
+function resetData() {
+  fetch(BASE + "/reset", {
+    method: "POST"
+  })
+  .then(res => res.json())
+  .then(res => {
+      console.log("Reset response:", res);
+
+      alert("Reset Done ✅");
+
+      // wait a bit (Render delay)
+      setTimeout(fetchData, 500);
+  })
+  .catch(err => {
+    console.error("Reset error:", err);
+  });
 }
 
 // 🔁 AUTO REFRESH
 setInterval(fetchData, 2000);
 fetchData();
 
-// 🔥 RESET
-function resetData() {
-  fetch("https://attendance-system-ul60.onrender.com/reset", {
-    method: "POST"
-  })
-  .then(() => {
-    alert("Reset Done");
-    fetchData();
-  });
-}
 </script>
 
 </body>

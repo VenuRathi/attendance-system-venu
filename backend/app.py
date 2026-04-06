@@ -10,11 +10,10 @@ sys.path.append(BASE_DIR)
 from backend.auth import require_api_key
 from backend.database import init_db, insert_attendance, get_all_attendance, get_connection
 
-
-app = Flask(__name__, template_folder="../frontend/templates")
+app = Flask(__name__)
 CORS(app)
 
-# 🔥 DASHBOARD ROUTE (NOW CORRECT POSITION)
+# 🔥 HOME
 @app.route("/")
 def home():
     return "Backend is running 🚀"
@@ -30,15 +29,15 @@ student_db = {
 }
 
 
-# 🔥 Duplicate check
+# 🔥 DUPLICATE CHECK (FIXED)
 def is_duplicate(uid):
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT * FROM attendance
-            WHERE uid = ? AND DATE(timestamp) = DATE('now')
+            SELECT 1 FROM attendance
+            WHERE uid = ? AND DATE(timestamp) = DATE('now') AND status = 'present'
         """, (uid,))
 
         result = cursor.fetchone()
@@ -46,7 +45,8 @@ def is_duplicate(uid):
 
         return result is not None
 
-    except:
+    except Exception as e:
+        print("Duplicate check error:", e)
         return False
 
 
@@ -55,28 +55,30 @@ def is_duplicate(uid):
 @require_api_key
 def add_attendance():
     data = request.get_json()
-    uid = data.get("uid")
 
-    if not uid:
+    if not data or "uid" not in data:
         return jsonify({"status": "error", "message": "UID missing"}), 400
 
-    # INVALID
+    uid = data.get("uid")
+
+    # ❌ INVALID CARD
     if uid not in student_db:
         insert_attendance(uid, "Unknown", "invalid")
         return jsonify({"status": "invalid"}), 200
 
     name = student_db[uid]
 
-    # DUPLICATE
+    # 🔁 DUPLICATE
     if is_duplicate(uid):
         insert_attendance(uid, name, "duplicate")
         return jsonify({"status": "duplicate", "name": name}), 200
 
-    # SUCCESS
+    # ✅ SUCCESS
     insert_attendance(uid, name, "present")
     return jsonify({"status": "success", "name": name}), 200
 
-# 🔥 GET attendance (for UI)
+
+# 🔥 GET attendance (FOR UI)
 @app.route("/attendance", methods=["GET"])
 def fetch_attendance():
     records = get_all_attendance()
@@ -88,11 +90,13 @@ def fetch_attendance():
             "uid": row[1],
             "name": row[2],
             "timestamp": row[3],
-            "status":row[4]
+            "status": row[4]  # 🔥 CRITICAL
         })
 
     return jsonify(result)
 
+
+# 🔥 RESET (FIXED + SAFE)
 @app.route("/reset", methods=["POST"])
 def reset_attendance():
     try:
@@ -101,15 +105,20 @@ def reset_attendance():
 
         cursor.execute("DELETE FROM attendance")
         conn.commit()
+
+        # 🔥 FORCE CLOSE & REOPEN (important for Render)
         conn.close()
+
+        print("🔥 DATABASE RESET SUCCESS")
 
         return jsonify({"status": "reset_success"}), 200
 
     except Exception as e:
+        print("❌ RESET ERROR:", e)
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# ❌ analytics disabled for now (good decision)
 
+# 🔥 START
 if __name__ == "__main__":
     init_db()
     app.run(host="0.0.0.0", port=5000, debug=True)
