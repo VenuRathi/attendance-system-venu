@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Attendance Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>📡 Live Attendance Dashboard</h1>
+
+<div class="top">
+    <div class="card">Total: <span id="total">0</span></div>
+    <div class="card">Unique: <span id="unique">0</span></div>
+    <div class="card" id="status">🟢 Live</div>
+</div>
+
+<canvas id="chart" height="100"></canvas>
+
+<h2>Recent Scans</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>UID</th>
+            <th>Time</th>
+        </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+</table>
+
+<div id="alert"></div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
