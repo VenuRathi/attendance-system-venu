@@ -22,28 +22,30 @@ def init_db():
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS attendance (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        uid TEXT NOT NULL,
-        name TEXT NOT NULL,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    uid TEXT,
+    name TEXT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status TEXT
+    );
     """)
 
     conn.commit()
     conn.close()
 
 
-def insert_attendance(uid, name):
+def insert_attendance(uid, name, status):
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute(
-        "INSERT INTO attendance (uid, name) VALUES (?, ?)",
-        (uid, name)
+        "INSERT INTO attendance (uid, name, status) VALUES (?, ?, ?)",
+        (uid, name, status)
     )
 
     conn.commit()
     conn.close()
+
 
 
 def get_all_attendance():
@@ -56,3 +58,4 @@ def get_all_attendance():
 
     conn.close()
     return rows
+
