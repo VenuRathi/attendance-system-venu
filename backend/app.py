@@ -1,7 +1,7 @@
 import os
 import sys
 from datetime import datetime
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 
 # Fix import paths
@@ -11,16 +11,17 @@ sys.path.append(BASE_DIR)
 from backend.auth import require_api_key
 from backend.database import init_db, insert_attendance, get_all_attendance, get_connection
 
-#from analytics.analytics import (
- #   generate_attendance_per_student,
-  #  generate_daily_attendance
-#)
+# 🚀 CREATE APP FIRST (IMPORTANT)
+app = Flask(__name__, template_folder="../frontend/templates")
+CORS(app)
+
+# 🔥 DASHBOARD ROUTE (NOW CORRECT POSITION)
+@app.route("/")
+def dashboard():
+    return render_template("dashboard.html")
 
 
-app = Flask(__name__)
-CORS(app)   # 🔥 ADD THIS
-
-# 🔥 UID → Name mapping (backend controlled now)
+# 🔥 UID → Name mapping
 student_db = {
     "5D229659": "Aditya",
     "D12F46": "Sameera",
@@ -29,7 +30,8 @@ student_db = {
     "3DC1CB59": "Shravasti"
 }
 
-# 🔥 Helper: check if already marked today
+
+# 🔥 Duplicate check
 def is_duplicate(uid):
     try:
         conn = get_connection()
@@ -49,17 +51,16 @@ def is_duplicate(uid):
         return False
 
 
+# 🔥 POST attendance
 @app.route("/attendance", methods=["POST"])
 @require_api_key
 def add_attendance():
     data = request.get_json()
-
     uid = data.get("uid")
 
     if not uid:
         return jsonify({"status": "error"}), 400
 
-    # 🔥 Check if card is registered
     if uid not in student_db:
         return jsonify({
             "status": "invalid",
@@ -68,14 +69,12 @@ def add_attendance():
 
     name = student_db[uid]
 
-    # 🔁 Check duplicate
     if is_duplicate(uid):
         return jsonify({
             "status": "duplicate",
             "name": name
         }), 200
 
-    # ✅ Insert attendance
     insert_attendance(uid, name)
 
     return jsonify({
@@ -83,6 +82,8 @@ def add_attendance():
         "name": name
     }), 200
 
+
+# 🔥 GET attendance (for UI)
 @app.route("/attendance", methods=["GET"])
 def fetch_attendance():
     records = get_all_attendance()
@@ -99,17 +100,8 @@ def fetch_attendance():
     return jsonify(result)
 
 
-#@app.route("/analytics/generate", methods=["GET"])
-#def generate_analytics():
-  #  chart1 = generate_attendance_per_student()
- #   chart2 = generate_daily_attendance()
-#
- #   return jsonify({
-  #      "status": "generated",
-   #     "attendance_per_student": bool(chart1),
-    #    "daily_attendance": bool(chart2)
-    #})
+# ❌ analytics disabled for now (good decision)
 
 if __name__ == "__main__":
-    init_db()  # 🔥 MOVE HERE
+    init_db()
     app.run(host="0.0.0.0", port=5000, debug=True)
