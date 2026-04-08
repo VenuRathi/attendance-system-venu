@@ -42,7 +42,7 @@ const DEVELOPERS: Developer[] = [
   {
     name: "Sameera Koshe",
     position: "Team Member",
-    role: "Documentation & Presentation Lead",
+    role: "Documentation Lead",
     description:
       "Contributed to project documentation and assisted in presentation preparation.",
     initials: "SK",
