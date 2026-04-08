@@ -42,7 +42,7 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
  * @summary Health check
  */
 export const getHealthCheckUrl = () => {
-  return `/healthz`;
+  return `/api/healthz`;
 };
 
 export const healthCheck = async (
@@ -55,7 +55,7 @@ export const healthCheck = async (
 };
 
 export const getHealthCheckQueryKey = () => {
-  return [`/healthz`] as const;
+  return [`/api/healthz`] as const;
 };
 
 export const getHealthCheckQueryOptions = <
@@ -129,8 +129,8 @@ export const getGetAttendanceUrl = (params?: GetAttendanceParams) => {
   const stringifiedParams = normalizedParams.toString();
 
   return stringifiedParams.length > 0
-    ? `/attendance?${stringifiedParams}`
-    : `/attendance`;
+    ? `/api/attendance?${stringifiedParams}`
+    : `/api/attendance`;
 };
 
 export const getAttendance = async (
@@ -144,7 +144,7 @@ export const getAttendance = async (
 };
 
 export const getGetAttendanceQueryKey = (params?: GetAttendanceParams) => {
-  return [`/attendance`, ...(params ? [params] : [])] as const;
+  return [`/api/attendance`, ...(params ? [params] : [])] as const;
 };
 
 export const getGetAttendanceQueryOptions = <
@@ -213,7 +213,7 @@ export function useGetAttendance<
  * @summary Record an attendance scan
  */
 export const getCreateAttendanceUrl = () => {
-  return `/attendance`;
+  return `/api/attendance`;
 };
 
 export const createAttendance = async (
@@ -300,7 +300,7 @@ export const useCreateAttendance = <
  * @summary Get attendance day summary
  */
 export const getGetAttendanceSummaryUrl = () => {
-  return `/attendance/summary`;
+  return `/api/attendance/summary`;
 };
 
 export const getAttendanceSummary = async (
@@ -313,7 +313,7 @@ export const getAttendanceSummary = async (
 };
 
 export const getGetAttendanceSummaryQueryKey = () => {
-  return [`/attendance/summary`] as const;
+  return [`/api/attendance/summary`] as const;
 };
 
 export const getGetAttendanceSummaryQueryOptions = <
@@ -376,7 +376,7 @@ export function useGetAttendanceSummary<
  * @summary Get lecture-wise attendance statistics
  */
 export const getGetLectureStatsUrl = () => {
-  return `/attendance/lecture-stats`;
+  return `/api/attendance/lecture-stats`;
 };
 
 export const getLectureStats = async (
@@ -389,7 +389,7 @@ export const getLectureStats = async (
 };
 
 export const getGetLectureStatsQueryKey = () => {
-  return [`/attendance/lecture-stats`] as const;
+  return [`/api/attendance/lecture-stats`] as const;
 };
 
 export const getGetLectureStatsQueryOptions = <
@@ -451,7 +451,7 @@ export function useGetLectureStats<
  * @summary Get the currently active lecture
  */
 export const getGetActiveLectureUrl = () => {
-  return `/lectures/active`;
+  return `/api/lectures/active`;
 };
 
 export const getActiveLecture = async (
@@ -464,7 +464,7 @@ export const getActiveLecture = async (
 };
 
 export const getGetActiveLectureQueryKey = () => {
-  return [`/lectures/active`] as const;
+  return [`/api/lectures/active`] as const;
 };
 
 export const getGetActiveLectureQueryOptions = <
@@ -526,7 +526,7 @@ export function useGetActiveLecture<
  * @summary Start a lecture
  */
 export const getStartLectureUrl = () => {
-  return `/lectures/start`;
+  return `/api/lectures/start`;
 };
 
 export const startLecture = async (
@@ -612,7 +612,7 @@ export const useStartLecture = <
  * @summary End the currently active lecture
  */
 export const getEndLectureUrl = () => {
-  return `/lectures/end`;
+  return `/api/lectures/end`;
 };
 
 export const endLecture = async (
@@ -694,7 +694,7 @@ export const useEndLecture = <
  * @summary Reset the entire day
  */
 export const getResetDayUrl = () => {
-  return `/reset`;
+  return `/api/reset`;
 };
 
 export const resetDay = async (
