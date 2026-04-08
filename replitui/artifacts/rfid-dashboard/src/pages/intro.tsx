@@ -9,7 +9,7 @@ const TEAM = [
   { name: "Venu Rathi", role: "Project Lead" },
   { name: "Prachiti Bhambure", role: "UI/UX Support" },
   { name: "Shravasti Barathe", role: "Testing & Validation" },
-  { name: "Sameera Koshe", role: "Documentation & Presentation Lead" },
+  { name: "Sameera Koshe", role: "Documentation Lead" },
 ];
 
 export default function Intro({ onComplete }: IntroProps) {
