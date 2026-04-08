@@ -1,94 +1,73 @@
-const API_URL = "https://attendance-system-ul60.onrender.com/attendance";
-
-let lastCount = 0;
-let lastUID = "";
+const API = "https://attendance-system-ul60.onrender.com/attendance";
+const RESET_API = "https://attendance-system-ul60.onrender.com/reset";
 
 let chart;
-let chartData = {};
 
-function formatTime(ts) {
-    const date = new Date(ts);
-    return date.toLocaleString(); // auto local time
+// SWITCH PAGES
+function showPage(pageId) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.getElementById(pageId).classList.add("active");
 }
 
-function updateChart(data) {
-    chartData = {};
+// FETCH DATA
+function fetchData() {
+  fetch(API)
+    .then(res => res.json())
+    .then(data => {
 
-    data.forEach(item => {
-        chartData[item.name] = (chartData[item.name] || 0) + 1;
+      const total = data.length;
+      const present = data.filter(d => d.status === "present").length;
+      const duplicate = data.filter(d => d.status === "duplicate").length;
+      const invalid = data.filter(d => d.status === "invalid").length;
+
+      document.getElementById("total").innerText = total;
+      document.getElementById("present").innerText = present;
+      document.getElementById("duplicate").innerText = duplicate;
+      document.getElementById("invalid").innerText = invalid;
+
+      // FEED
+      const feed = document.getElementById("feed");
+      feed.innerHTML = "";
+
+      data.slice(-10).reverse().forEach(d => {
+        feed.innerHTML += `
+          <div class="feed-item">
+            ${d.name} (${d.uid}) - ${d.status}
+          </div>
+        `;
+      });
+
+      updateChart(present, duplicate, invalid);
     });
+}
 
-    const labels = Object.keys(chartData);
-    const values = Object.values(chartData);
+// CHART
+function updateChart(p, d, i) {
+  const data = {
+    labels: ["Present", "Duplicate", "Invalid"],
+    datasets: [{ data: [p, d, i] }]
+  };
 
-    if (chart) chart.destroy();
-
+  if (chart) {
+    chart.data = data;
+    chart.update();
+  } else {
     chart = new Chart(document.getElementById("chart"), {
-        type: "bar",
-        data: {
-            labels: labels,
-            datasets: [{
-                label: "Attendance Count",
-                data: values
-            }]
-        }
+      type: "bar",
+      data: data
+    });
+  }
+}
+
+// RESET
+function resetData() {
+  fetch(RESET_API, { method: "POST" })
+    .then(() => {
+      alert("System Reset");
+      fetchData();
     });
 }
 
-async function fetchData() {
-    try {
-        const res = await fetch(API_URL);
-        const data = await res.json();
-
-        document.getElementById("total").innerText = data.length;
-
-        const unique = new Set(data.map(i => i.uid));
-        document.getElementById("unique").innerText = unique.size;
-
-        // 🔥 real-time detection
-        if (data.length > lastCount) {
-            document.getElementById("status").innerText = "🟢 New Scan!";
-        } else {
-            document.getElementById("status").innerText = "🟢 Live";
-        }
-
-        lastCount = data.length;
-
-        let table = "";
-
-        data.slice().reverse().forEach(item => {
-            table += `
-                <tr>
-                    <td>${item.name}</td>
-                    <td>${item.uid}</td>
-                    <td>${formatTime(item.timestamp)}</td>
-                </tr>
-            `;
-        });
-
-        document.getElementById("table-body").innerHTML = table;
-
-        // 🔥 duplicate detection (simple)
-        if (data.length > 0) {
-            const latest = data[data.length - 1];
-
-            if (latest.uid === lastUID) {
-                document.getElementById("alert").innerText =
-                    "⚠️ Duplicate Scan: " + latest.name;
-            } else {
-                document.getElementById("alert").innerText = "";
-            }
-
-            lastUID = latest.uid;
-        }
-
-        updateChart(data);
-
-    } catch (err) {
-        document.getElementById("status").innerText = "🔴 Error";
-    }
-}
-
-// refresh every 2 sec
+// AUTO REFRESH
 setInterval(fetchData, 2000);
 fetchData();

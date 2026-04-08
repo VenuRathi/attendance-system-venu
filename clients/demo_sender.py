@@ -1,40 +1,42 @@
 import requests
-import random
-import time
+import json
 
-API_URL = "http://127.0.0.1:5000/attendance"
+# Test the ESP32 functionality with Python (simulating HTTPS request to deployed server)
+server_url = "https://attendance-system-ul60.onrender.com/attendance"
+api_key = "ESP32_SECRET_KEY_123"
 
-names = [
-    "Rahul", "Ayesha", "Vikram", "Sneha", "Arjun",
-    "Neha", "Karan", "Pooja", "Aman", "Ishita"
-]
+# Test with a valid UID from the database
+test_uid = "5D229659"  # Aditya
 
-print("📡 Demo sender started (simulating ESP32)...")
+headers = {
+    "Content-Type": "application/json",
+    "X-API-KEY": api_key
+}
 
-for _ in range(15):
-    uid = hex(random.randint(100000, 999999))
-    name = random.choice(names)
+data = {"uid": test_uid}
 
-    payload = {
-        "uid": uid,
-        "name": name
-    }
+print(f"Testing POST to {server_url}")
+print(f"Sending data: {data}")
+print(f"Headers: X-API-KEY={api_key}")
 
-    try:
-        headers = {
-            "X-API-KEY": "ESP32_SECRET_KEY_123"
-        }
+try:
+    response = requests.post(server_url, json=data, headers=headers, timeout=10)
+    print(f"Status Code: {response.status_code}")
+    print(f"Response: {response.json()}")
 
-        response = requests.post(API_URL, json=payload, headers=headers)
+    # Test GET to see if data was stored
+    print("\nTesting GET request...")
+    get_response = requests.get(server_url, timeout=10)
+    print(f"GET Status: {get_response.status_code}")
+    attendance_data = get_response.json()
+    print(f"Attendance records: {len(attendance_data)} found")
 
-        if response.status_code in (200, 201):
-            print(f"✅ Sent: UID={uid} Name={name}")
-        else:
-            print(f"❌ Failed [{response.status_code}]: {response.text}")
+    # Show the latest record
+    if attendance_data:
+        latest = attendance_data[0]
+        print(f"Latest record: {latest}")
 
-    except Exception as e:
-        print("❌ Error:", e)
-
-    time.sleep(0.5)
-
-print("✅ Demo sender finished")
+except requests.exceptions.RequestException as e:
+    print(f"Request Error: {e}")
+except Exception as e:
+    print(f"Error: {e}")

@@ -1,0 +1,84 @@
+Build a modern web dashboard UI for an RFID-based Attendance System.
+
+The UI should be clean, minimal, and slightly futuristic (dark theme preferred), similar to a professional admin dashboard.
+
+CORE FEATURES:
+
+1. LECTURE MANAGEMENT SYSTEM:
+
+* There should be 8 lecture slots (Lecture 1 to Lecture 8).
+* Only one lecture can be active at a time.
+* Add a "Start Lecture" button to begin a lecture.
+* Once a lecture is started:
+
+  * All incoming attendance scans should be recorded under that lecture.
+* Add a "End Lecture" button to stop it.
+* Automatically move to next lecture (Lecture 2 → Lecture 3, etc).
+* Display current active lecture clearly at the top.
+
+2. REAL-TIME ATTENDANCE FEED:
+
+* Show latest scans in real time.
+* Each entry should show:
+
+  * Name
+  * UID
+  * Status (Present / Duplicate / Invalid)
+  * Timestamp
+* Highlight:
+
+  * Green → Present
+  * Yellow → Duplicate
+  * Red → Invalid
+
+3. ANALYTICS (VERY IMPORTANT):
+
+* Show lecture-wise analytics:
+
+  * Each lecture should have:
+
+    * Total scans
+    * Present count
+    * Duplicate count
+    * Invalid count
+* Show a daily summary after all 8 lectures:
+
+  * Total attendance per student
+  * Bar chart: Student vs Attendance count
+  * Pie chart: Present vs Duplicate vs Invalid
+* Add a "View Day Summary" section.
+
+4. RESET SYSTEM:
+
+* Add a "Reset Day" button.
+* This clears all attendance and resets lecture back to Lecture 1.
+
+5. UI DESIGN:
+
+* Dark theme
+* Card-based layout
+* Sidebar with:
+
+  * Dashboard
+  * Lectures
+  * Analytics
+* Smooth transitions and hover effects
+* Responsive design
+
+6. TECH:
+
+* Use HTML, CSS, and JavaScript (no heavy frameworks required)
+* Use Chart.js for charts
+* Fetch data from backend API endpoints:
+
+  * GET /attendance
+  * POST /attendance
+  * POST /reset
+
+7. EXTRA (IMPORTANT FOR DEMO):
+
+* Store lecture number along with each attendance record
+* Filter analytics by lecture
+* Show which lecture each scan belongs to
+
+Make the UI visually impressive but also functional and easy to understand for demonstration.

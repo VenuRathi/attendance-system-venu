@@ -1,0 +1,293 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: RFID Attendance System API
+servers:
+  - url: /
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: attendance
+    description: Attendance management
+  - name: lectures
+    description: Lecture management
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /attendance:
+    get:
+      operationId: getAttendance
+      tags: [attendance]
+      summary: Get all attendance records
+      description: Returns all attendance records, optionally filtered by lecture
+      parameters:
+        - name: lectureNumber
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of attendance records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AttendanceRecord"
+    post:
+      operationId: createAttendance
+      tags: [attendance]
+      summary: Record an attendance scan
+      description: Records a new RFID attendance scan under the current active lecture
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAttendanceBody"
+      responses:
+        "201":
+          description: Attendance recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttendanceRecord"
+        "400":
+          description: Invalid request
+
+  /attendance/summary:
+    get:
+      operationId: getAttendanceSummary
+      tags: [attendance]
+      summary: Get attendance day summary
+      description: Returns per-student attendance summary across all lectures
+      responses:
+        "200":
+          description: Daily attendance summary
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StudentSummary"
+
+  /attendance/lecture-stats:
+    get:
+      operationId: getLectureStats
+      tags: [attendance]
+      summary: Get lecture-wise attendance statistics
+      description: Returns count breakdown (present, duplicate, invalid) per lecture
+      responses:
+        "200":
+          description: Lecture statistics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LectureStat"
+
+  /lectures/active:
+    get:
+      operationId: getActiveLecture
+      tags: [lectures]
+      summary: Get the currently active lecture
+      responses:
+        "200":
+          description: Active lecture state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActiveLecture"
+
+  /lectures/start:
+    post:
+      operationId: startLecture
+      tags: [lectures]
+      summary: Start a lecture
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StartLectureBody"
+      responses:
+        "200":
+          description: Lecture started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActiveLecture"
+        "400":
+          description: Invalid request
+
+  /lectures/end:
+    post:
+      operationId: endLecture
+      tags: [lectures]
+      summary: End the currently active lecture
+      responses:
+        "200":
+          description: Lecture ended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActiveLecture"
+        "400":
+          description: No active lecture
+
+  /reset:
+    post:
+      operationId: resetDay
+      tags: [attendance]
+      summary: Reset the entire day
+      description: Clears all attendance records and resets to Lecture 1
+      responses:
+        "200":
+          description: System reset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResetResponse"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    AttendanceRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        uid:
+          type: string
+        status:
+          type: string
+          enum: [present, duplicate, invalid]
+        lectureNumber:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - uid
+        - status
+        - lectureNumber
+        - timestamp
+
+    CreateAttendanceBody:
+      type: object
+      properties:
+        name:
+          type: string
+        uid:
+          type: string
+        lectureNumber:
+          type: integer
+      required:
+        - name
+        - uid
+        - lectureNumber
+
+    StudentSummary:
+      type: object
+      properties:
+        name:
+          type: string
+        uid:
+          type: string
+        totalScans:
+          type: integer
+        presentCount:
+          type: integer
+        duplicateCount:
+          type: integer
+        invalidCount:
+          type: integer
+      required:
+        - name
+        - uid
+        - totalScans
+        - presentCount
+        - duplicateCount
+        - invalidCount
+
+    LectureStat:
+      type: object
+      properties:
+        lectureNumber:
+          type: integer
+        totalScans:
+          type: integer
+        presentCount:
+          type: integer
+        duplicateCount:
+          type: integer
+        invalidCount:
+          type: integer
+      required:
+        - lectureNumber
+        - totalScans
+        - presentCount
+        - duplicateCount
+        - invalidCount
+
+    ActiveLecture:
+      type: object
+      properties:
+        lectureNumber:
+          type: ["integer", "null"]
+        isActive:
+          type: boolean
+        startedAt:
+          type: ["string", "null"]
+          format: date-time
+      required:
+        - lectureNumber
+        - isActive
+        - startedAt
+
+    StartLectureBody:
+      type: object
+      properties:
+        lectureNumber:
+          type: integer
+      required:
+        - lectureNumber
+
+    ResetResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+        - message

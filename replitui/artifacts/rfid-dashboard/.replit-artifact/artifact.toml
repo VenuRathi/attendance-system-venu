@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "RFID Attendance Dashboard"
+version = "1.0.0"
+id = "artifacts/rfid-dashboard"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24211
+
+[services.development]
+run = "pnpm --filter @workspace/rfid-dashboard run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/rfid-dashboard", "run", "build" ]
+publicDir = "artifacts/rfid-dashboard/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24211"
+BASE_PATH = "/"

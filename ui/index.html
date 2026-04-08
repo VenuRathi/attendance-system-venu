@@ -1,53 +1,198 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>RFID Attendance</title>
+  <title>RFID_CTRL</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: white;
+    }
+
+    .app {
+      display: flex;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 230px;
+      background: #161b22;
+      height: 100vh;
+      padding: 20px;
+      border-right: 1px solid #30363d;
+    }
+
+    .sidebar h2 {
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+
+    .nav-item {
+      padding: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+
+    .nav-item:hover {
+      background: #21262d;
+    }
+
+    /* MAIN */
+    .main {
+      flex: 1;
+      padding: 20px;
+    }
+
+    .header {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    .status {
+      color: #00ff88;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    /* CARDS */
+    .cards {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      flex: 1;
+      background: #161b22;
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px solid #30363d;
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 14px;
+      color: #8b949e;
+    }
+
+    .card p {
+      font-size: 28px;
+      margin-top: 10px;
+    }
+
+    /* FEED */
+    .feed {
+      background: #161b22;
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px solid #30363d;
+      margin-bottom: 20px;
+    }
+
+    .feed-item {
+      padding: 10px;
+      border-bottom: 1px solid #30363d;
+    }
+
+    /* SESSION */
+    .session {
+      background: #161b22;
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px solid #30363d;
+      text-align: center;
+    }
+
+    /* BUTTON */
+    button {
+      padding: 10px 15px;
+      background: red;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+  </style>
 </head>
+
 <body>
 
-<h2>RFID Attendance System</h2>
+<div class="app">
 
-<!-- RESET BUTTON -->
-<button onclick="resetData()">Reset Data</button>
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <h2>RFID_CTRL</h2>
 
-<hr>
+    <div class="nav-item">Dashboard</div>
+    <div class="nav-item">Lectures</div>
+    <div class="nav-item">Analytics</div>
+    <div class="nav-item" onclick="resetData()">Reset System</div>
+    <div class="nav-item">About Us</div>
+  </div>
 
-<!-- LIVE DATA -->
-<h3>Live Scans</h3>
-<ul id="feed"></ul>
+  <!-- MAIN -->
+  <div class="main">
 
-<hr>
+    <div class="header">System Dashboard</div>
+    <div class="status">● SYSTEM ONLINE</div>
 
-<!-- COUNTS -->
-<p>Total: <span id="total">0</span></p>
-<p>Present: <span id="present">0</span></p>
-<p>Duplicate: <span id="duplicate">0</span></p>
-<p>Invalid: <span id="invalid">0</span></p>
+    <!-- CARDS -->
+    <div class="cards">
+      <div class="card">
+        <h3>Total Scans</h3>
+        <p id="total">0</p>
+      </div>
 
-<hr>
+      <div class="card">
+        <h3>Present</h3>
+        <p id="present" style="color:#00ff88;">0</p>
+      </div>
 
-<!-- CHART -->
-<canvas id="chart" width="400" height="200"></canvas>
+      <div class="card">
+        <h3>Duplicate</h3>
+        <p id="duplicate" style="color:#ffcc00;">0</p>
+      </div>
+
+      <div class="card">
+        <h3>Invalid</h3>
+        <p id="invalid" style="color:#ff4d4d;">0</p>
+      </div>
+    </div>
+
+    <!-- FEED -->
+    <div class="feed">
+      <h3>Live Scan Feed</h3>
+      <div id="feed">No recent scans detected</div>
+    </div>
+
+    <!-- SESSION -->
+    <div class="session">
+      <h3>Active Session</h3>
+      <p>System Idle</p>
+    </div>
+
+    <!-- CHART -->
+    <canvas id="chart" style="margin-top:20px;"></canvas>
+
+  </div>
+</div>
 
 <script>
-const BASE = "https://attendance-system-ul60.onrender.com";
-const API = BASE + "/attendance";
 
-let chart = null;
+const API = "https://attendance-system-ul60.onrender.com/attendance";
+let chart;
 
-// 🔥 FETCH DATA
+// FETCH DATA
 function fetchData() {
   fetch(API)
     .then(res => res.json())
     .then(data => {
 
-      if (!Array.isArray(data)) {
-        console.error("Invalid response:", data);
-        return;
-      }
-
-      // COUNTS
       document.getElementById("total").innerText = data.length;
 
       const present = data.filter(d => d.status === "present").length;
@@ -58,33 +203,30 @@ function fetchData() {
       document.getElementById("duplicate").innerText = duplicate;
       document.getElementById("invalid").innerText = invalid;
 
-      // 🔴 REAL-TIME FEED
+      // FEED
       const feed = document.getElementById("feed");
       feed.innerHTML = "";
 
-      data.slice(-5).reverse().forEach(d => {
-        const li = document.createElement("li");
+      if (data.length === 0) {
+        feed.innerText = "No recent scans detected";
+      } else {
+        data.slice(-10).reverse().forEach(d => {
+          feed.innerHTML += `
+            <div class="feed-item">
+              ${d.name} (${d.uid}) - ${d.status}
+            </div>
+          `;
+        });
+      }
 
-        const name = d.name || "Unknown";
-        const uid = d.uid || "N/A";
-        const status = d.status || "unknown";
-
-        li.innerText = `${name} (${uid}) - ${status}`;
-        feed.appendChild(li);
-      });
-
-      // 📊 CHART
       updateChart(present, duplicate, invalid);
-    })
-    .catch(err => {
-      console.error("Fetch error:", err);
     });
 }
 
-// 📊 CHART FUNCTION
+// CHART
 function updateChart(present, duplicate, invalid) {
 
-  const chartData = {
+  const data = {
     labels: ["Present", "Duplicate", "Invalid"],
     datasets: [{
       label: "Attendance",
@@ -93,41 +235,29 @@ function updateChart(present, duplicate, invalid) {
   };
 
   if (chart) {
-    chart.data = chartData;
+    chart.data = data;
     chart.update();
   } else {
     const ctx = document.getElementById("chart").getContext("2d");
     chart = new Chart(ctx, {
       type: "bar",
-      data: chartData,
-      options: {
-        responsive: true,
-        maintainAspectRatio: false
-      }
+      data: data
     });
   }
 }
 
-// 🔥 RESET
+// RESET
 function resetData() {
-  fetch(BASE + "/reset", {
+  fetch("https://attendance-system-ul60.onrender.com/reset", {
     method: "POST"
   })
-  .then(res => res.json())
-  .then(res => {
-      console.log("Reset response:", res);
-
-      alert("Reset Done ✅");
-
-      // wait a bit (Render delay)
-      setTimeout(fetchData, 500);
-  })
-  .catch(err => {
-    console.error("Reset error:", err);
+  .then(() => {
+    alert("System Reset Done");
+    fetchData();
   });
 }
 
-// 🔁 AUTO REFRESH
+// AUTO REFRESH
 setInterval(fetchData, 2000);
 fetchData();
 
