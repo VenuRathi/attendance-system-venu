@@ -1,4 +1,4 @@
-import { useGetAttendance } from "@workspace/api-client-react";
+import { useGetAttendance, useGetActiveLecture } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -6,6 +6,7 @@ import { Users, AlertTriangle, XCircle, Zap, Activity } from "lucide-react";
 
 export default function Dashboard() {
   const { data: attendance = [], isLoading: loading } = useGetAttendance();
+  const { data: activeLecture, isLoading: lectureLoading } = useGetActiveLecture();
 
   // 📊 TOTALS
   const totals = {
@@ -34,9 +35,17 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <Badge variant="outline" className="px-4 py-2 border-muted-foreground/50 text-muted-foreground">
-          System Online
-        </Badge>
+        {lectureLoading ? (
+          <Skeleton className="w-40 h-10" />
+        ) : activeLecture?.isActive ? (
+          <Badge className="px-4 py-2 bg-primary text-primary-foreground animate-pulse">
+            🔴 Lecture {activeLecture.lectureNumber} Active - Scanning Enabled
+          </Badge>
+        ) : (
+          <Badge variant="destructive" className="px-4 py-2">
+            ⚠️ No Active Lecture - Scanning Disabled
+          </Badge>
+        )}
       </div>
 
       {/* STATS */}

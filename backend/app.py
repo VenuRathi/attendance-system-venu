@@ -101,8 +101,13 @@ def add_attendance():
     if not data or "uid" not in data:
         return jsonify({"status": "error", "message": "UID missing"}), 400
 
+    # 🔥 CHECK IF LECTURE IS ACTIVE
+    active_lecture = get_active_lecture()
+    if not active_lecture["isActive"]:
+        return jsonify({"status": "error", "message": "No active lecture. Scanning is disabled."}), 403
+
     uid = data.get("uid")
-    lecture_number = parse_int(data.get("lectureNumber"), 1)
+    lecture_number = active_lecture["lectureNumber"] or 1
 
     if uid not in student_db:
         insert_attendance(uid, "Unknown", "invalid", lecture_number)
@@ -136,12 +141,14 @@ def api_create_attendance():
     if not data or "uid" not in data or "name" not in data:
         return jsonify({"error": "uid and name are required"}), 400
 
+    # 🔥 CHECK IF LECTURE IS ACTIVE
+    active_lecture = get_active_lecture()
+    if not active_lecture["isActive"]:
+        return jsonify({"error": "No active lecture. Scanning is disabled."}), 403
+
     uid = data.get("uid")
     name = data.get("name")
-    lecture_number = parse_int(data.get("lectureNumber"), None)
-
-    if lecture_number is None:
-        lecture_number = get_active_lecture()["lectureNumber"] or 1
+    lecture_number = active_lecture["lectureNumber"] or 1
 
     if uid not in student_db:
         insert_attendance(uid, "Unknown", "invalid", lecture_number)
