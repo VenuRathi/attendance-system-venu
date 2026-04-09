@@ -3,10 +3,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, AlertTriangle, XCircle, Zap, Activity } from "lucide-react";
+import { useSound } from "@/hooks/use-sound";
+import { useEffect, useRef } from "react";
 
 export default function Dashboard() {
-  const { data: attendance = [], isLoading: loading } = useGetAttendance();
+  const { data: attendance = [], isLoading: loading } = useGetAttendance(undefined, {
+    query: {
+      refetchInterval: 500,
+      refetchIntervalInBackground: true,
+    },
+  });
   const { data: activeLecture, isLoading: lectureLoading } = useGetActiveLecture();
+  const { playFaahSound } = useSound();
+  const prevInvalidCountRef = useRef(0);
+  const baselineReadyRef = useRef(false);
 
   // 📊 TOTALS
   const totals = {
@@ -15,6 +25,24 @@ export default function Dashboard() {
     duplicate: attendance.filter(a => a.status === "duplicate").length,
     invalid: attendance.filter(a => a.status === "invalid").length,
   };
+
+  // Play sound when invalid count increases
+  useEffect(() => {
+    if (loading) {
+      return;
+    }
+
+    if (!baselineReadyRef.current) {
+      baselineReadyRef.current = true;
+      prevInvalidCountRef.current = totals.invalid;
+      return;
+    }
+
+    if (totals.invalid > prevInvalidCountRef.current) {
+      playFaahSound();
+    }
+    prevInvalidCountRef.current = totals.invalid;
+  }, [totals.invalid, loading, playFaahSound]);
 
   // 🔴 LATEST SCANS
   const latestScans = [...attendance]
