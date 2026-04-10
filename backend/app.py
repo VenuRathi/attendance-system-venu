@@ -31,10 +31,10 @@ def home():
 
 # 🔥 UID → Name mapping
 student_db = {
-    "5D229659": "Aditya",
-    "D12F46": "Sameera",
+    "5D229659": "Pallavi",
+    "D12F46": "Devika",
     "4BFC8A4": "Venu",
-    "62DC7C5": "Prachiti",
+    "62DC7C5": "Alfiya",
     "3DC1CB59": "Shravasti"
 }
 
